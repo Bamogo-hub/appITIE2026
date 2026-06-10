@@ -11,7 +11,11 @@ import uuid
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'rne_sn_2024_xK9#mPqL!vR7'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///declarations.db'
+# Chemin absolu pour la base SQLite — fonctionne quel que soit le répertoire courant
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DB_PATH = os.path.join(BASE_DIR, 'instance', 'declarations.db')
+os.makedirs(os.path.join(BASE_DIR, 'instance'), exist_ok=True)
+app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{DB_PATH}'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['UPLOAD_FOLDER'] = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'uploads')
 app.config['MAX_CONTENT_LENGTH'] = 100 * 1024 * 1024
@@ -1044,6 +1048,37 @@ def from_json_filter(value):
     except Exception:
         return []
 
+
+def initialiser_base():
+    """Crée les tables et le compte admin si nécessaires."""
+    with app.app_context():
+        db.create_all()
+        if not User.query.filter_by(role='admin').first():
+            _hashed = bcrypt.generate_password_hash('changez_ce_mot_de_passe').decode('utf-8')
+            _admin = User(
+                nom='Administrateur', prenom='Système',
+                email='admin@rne.justice.sn',
+                password=_hashed, role='admin'
+            )
+            db.session.add(_admin)
+            db.session.commit()
+        os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+        _exports = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'exports')
+        os.makedirs(_exports, exist_ok=True)
+
+
+# Exécuté au chargement du module (gunicorn, python app.py, tests)
+initialiser_base()
+
+
+@app.before_request
+def verifier_base():
+    """Filet de sécurité : recrée les tables si elles ont disparu."""
+    try:
+        User.query.limit(1).all()
+    except Exception:
+        db.create_all()
+
+
 if __name__ == "__main__":
-    init_db()
     app.run(debug=False, host='0.0.0.0', port=5000)
