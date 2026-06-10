@@ -1,270 +1,649 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Connexion : Registre National des Bénéficiaires Effectifs</title>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-<style>
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html, body { height: 100%; font-family: 'Inter', sans-serif; }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Connexion | Registre National des Bénéficiaires Effectifs</title>
 
-.page { display: flex; flex-direction: column; min-height: 100vh; background: #F0F4F8; }
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Source+Serif+4:wght@400;600;700&display=swap" rel="stylesheet">
 
-/* Bande drapeau + devise */
-.bandeau-national {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background: #0F2340;
-  padding: 0.45rem 1.5rem;
-  flex-shrink: 0;
-}
-.drapeau {
-  display: flex;
-  border-radius: 4px;
-  overflow: hidden;
-  width: 44px;
-  height: 27px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.3);
-  flex-shrink: 0;
-}
-.drapeau-vert  { flex: 1; background: #00853F; }
-.drapeau-jaune { flex: 1; background: #FDEF42; display: flex; align-items: center; justify-content: center; color: #00853F; font-size: 0.7rem; }
-.drapeau-rouge { flex: 1; background: #E31B23; }
-.devise-nationale {
-  font-size: 0.72rem;
-  color: rgba(255,255,255,0.65);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  font-family: 'Inter', sans-serif;
-}
-.republique-label {
-  font-size: 0.72rem;
-  color: rgba(255,255,255,0.5);
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-}
+  <style>
+    :root {
+      --bleu-nuit: #0B1F3A;
+      --bleu-officiel: #12345B;
+      --bleu-secondaire: #1E4A7C;
+      --or: #D4A63C;
+      --or-clair: #F1D06B;
+      --blanc: #FFFFFF;
+      --fond: #F4F7FB;
+      --texte: #1F2937;
+      --muted: #6B7280;
+      --bordure: #DCE3EC;
+      --vert-sn: #00853F;
+      --jaune-sn: #FCD116;
+      --rouge-sn: #E31B23;
+      --danger-bg: #FFF4F4;
+      --danger-border: #F5C2C7;
+      --danger-text: #B42318;
+    }
 
-.contenu-principal {
-  flex: 1;
-  display: flex;
-}
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
 
-.panneau-gauche {
-  flex: 0 0 48%;
-  background: linear-gradient(160deg, #0F2340 0%, #1C3557 55%, #1A4A7A 100%);
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  padding: 3rem;
-  position: relative;
-  overflow: hidden;
-}
+    html, body {
+      height: 100%;
+      font-family: 'Inter', sans-serif;
+      background: var(--fond);
+      color: var(--texte);
+    }
 
-.panneau-gauche::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background-image: repeating-linear-gradient(
-    45deg, transparent, transparent 40px,
-    rgba(255,255,255,0.012) 40px, rgba(255,255,255,0.012) 41px
-  );
-}
+    body {
+      min-height: 100vh;
+    }
 
-.panneau-gauche::after {
-  content: '';
-  position: absolute;
-  bottom: -80px;
-  left: -80px;
-  width: 360px;
-  height: 360px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(212,166,60,0.12) 0%, transparent 70%);
-}
+    .page {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      background:
+        radial-gradient(circle at top right, rgba(18, 52, 91, 0.06), transparent 25%),
+        linear-gradient(180deg, #F7FAFC 0%, #EEF3F8 100%);
+    }
 
-.entete-gauche { position: relative; z-index: 2; }
+    /* ===== Bandeau national ===== */
+    .bandeau-national {
+      background: linear-gradient(90deg, var(--bleu-nuit) 0%, var(--bleu-officiel) 100%);
+      color: var(--blanc);
+      padding: 0.85rem 1.5rem;
+      border-bottom: 4px solid var(--or);
+      box-shadow: 0 2px 14px rgba(11, 31, 58, 0.18);
+      position: relative;
+      z-index: 10;
+    }
 
-.embleme {
-  width: 68px; height: 68px;
-  background: linear-gradient(135deg, #D4A63C, #F0C84A);
-  border-radius: 14px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 1.7rem; color: #1C3557;
-  margin-bottom: 1.75rem;
-  box-shadow: 0 6px 20px rgba(212,166,60,0.28);
-}
-.titre-ministere {
-  font-family: 'Source Serif 4', serif;
-  font-size: 0.85rem;
-  color: rgba(255,255,255,0.55);
-  letter-spacing: 0.09em;
-  text-transform: uppercase;
-  margin-bottom: 0.35rem;
-}
-.titre-principal {
-  font-family: 'Source Serif 4', serif;
-  font-size: 1.65rem;
-  color: #FFFFFF;
-  font-weight: 700;
-  line-height: 1.3;
-  margin-bottom: 0.4rem;
-}
-.titre-sous {
-  font-size: 0.88rem;
-  color: rgba(255,255,255,0.5);
-}
-.separateur-or {
-  width: 48px; height: 3px;
-  background: linear-gradient(90deg, #D4A63C, #F0C84A);
-  border-radius: 2px;
-  margin: 1.5rem 0;
-}
-.titre-registre {
-  font-size: 0.95rem;
-  color: rgba(255,255,255,0.8);
-  font-weight: 500;
-  line-height: 1.5;
-}
+    .bandeau-contenu {
+      max-width: 1400px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
 
-.panneau-droit {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 2.5rem 2rem;
-}
+    .bloc-etat {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
 
-.carte-connexion {
-  width: 100%;
-  max-width: 420px;
-  background: #FFFFFF;
-  border-radius: 18px;
-  padding: 2.5rem;
-  box-shadow: 0 4px 28px rgba(28,53,87,0.1);
-}
-.carte-connexion h2 {
-  font-family: 'Source Serif 4', serif;
-  font-size: 1.55rem;
-  font-weight: 700;
-  color: #1C3557;
-  margin-bottom: 0.3rem;
-}
-.carte-connexion .sous-titre { font-size: 0.875rem; color: #718096; margin-bottom: 1.75rem; }
-.separateur-carte { height: 3px; width: 36px; background: linear-gradient(90deg,#D4A63C,#F0C84A); border-radius: 2px; margin-bottom: 1.75rem; }
+    .drapeau {
+      width: 54px;
+      height: 34px;
+      border-radius: 4px;
+      overflow: hidden;
+      display: flex;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+      border: 1px solid rgba(255,255,255,0.2);
+      flex-shrink: 0;
+    }
 
-.champ-label { font-size: 0.8rem; font-weight: 600; color: #2D3748; letter-spacing: 0.03em; margin-bottom: 0.35rem; display: block; }
-.groupe-champ { position: relative; margin-bottom: 1.2rem; }
-.icone-champ { position: absolute; left: 13px; top: 50%; transform: translateY(-50%); color: #A0AEC0; font-size: 0.85rem; pointer-events: none; }
-.groupe-champ input {
-  width: 100%; padding: 0.62rem 0.9rem 0.62rem 2.4rem;
-  border: 1.5px solid #E2E8F0; border-radius: 9px;
-  font-size: 0.9rem; font-family: 'Inter', sans-serif; color: #2D3748;
-  background: #FAFAFA; transition: all 0.2s; outline: none;
-}
-.groupe-champ input:focus { border-color: #1C3557; background: #fff; box-shadow: 0 0 0 3px rgba(28,53,87,0.08); }
-.btn-oeil { position: absolute; right: 11px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #A0AEC0; cursor: pointer; padding: 0; font-size: 0.85rem; }
-.btn-connexion {
-  width: 100%; padding: 0.72rem;
-  background: linear-gradient(135deg, #1C3557, #2A4D7A);
-  color: white; border: none; border-radius: 9px;
-  font-size: 0.9rem; font-weight: 600; font-family: 'Inter', sans-serif;
-  cursor: pointer; transition: all 0.2s;
-  display: flex; align-items: center; justify-content: center; gap: 0.5rem;
-  margin-top: 0.5rem; letter-spacing: 0.02em;
-}
-.btn-connexion:hover { background: linear-gradient(135deg, #0F2340, #1C3557); box-shadow: 0 4px 14px rgba(28,53,87,0.28); transform: translateY(-1px); }
-.alerte { padding: 0.65rem 0.9rem; border-radius: 8px; font-size: 0.85rem; margin-bottom: 1.2rem; display: flex; align-items: center; gap: 0.5rem; }
-.alerte-danger { background: #FFF5F5; color: #C53030; border: 1px solid #FED7D7; }
-.pied-carte { text-align: center; margin-top: 1.4rem; font-size: 0.77rem; color: #A0AEC0; display: flex; align-items: center; justify-content: center; gap: 0.35rem; }
+    .drapeau > div {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
 
-@media (max-width: 768px) {
-  .panneau-gauche { display: none; }
-  .panneau-droit { background: #1C3557; }
-  .carte-connexion { box-shadow: 0 8px 40px rgba(0,0,0,0.3); }
-}
-</style>
+    .drapeau-vert { background: var(--vert-sn); }
+    .drapeau-jaune {
+      background: var(--jaune-sn);
+      color: var(--vert-sn);
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+    .drapeau-rouge { background: var(--rouge-sn); }
+
+    .texte-etat {
+      display: flex;
+      flex-direction: column;
+      line-height: 1.2;
+    }
+
+    .texte-etat .republique {
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: rgba(255,255,255,0.72);
+      margin-bottom: 0.15rem;
+    }
+
+    .texte-etat .pays {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .devise {
+      font-size: 0.82rem;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: rgba(255,255,255,0.82);
+      white-space: nowrap;
+    }
+
+    /* ===== Contenu principal ===== */
+    .contenu-principal {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1.05fr 0.95fr;
+      min-height: calc(100vh - 74px);
+    }
+
+    /* ===== Panneau gauche ===== */
+    .panneau-gauche {
+      position: relative;
+      overflow: hidden;
+      background:
+        linear-gradient(145deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01)),
+        linear-gradient(160deg, var(--bleu-nuit) 0%, var(--bleu-officiel) 55%, var(--bleu-secondaire) 100%);
+      padding: 4.5rem 4rem;
+      display: flex;
+      align-items: center;
+    }
+
+    .panneau-gauche::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        repeating-linear-gradient(
+          135deg,
+          transparent 0,
+          transparent 34px,
+          rgba(255,255,255,0.03) 34px,
+          rgba(255,255,255,0.03) 35px
+        );
+      opacity: 0.35;
+      pointer-events: none;
+    }
+
+    .panneau-gauche::after {
+      content: "";
+      position: absolute;
+      right: -120px;
+      bottom: -120px;
+      width: 360px;
+      height: 360px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(212,166,60,0.18) 0%, rgba(212,166,60,0.05) 35%, transparent 72%);
+      pointer-events: none;
+    }
+
+    .contenu-gauche {
+      position: relative;
+      z-index: 2;
+      max-width: 600px;
+    }
+
+    .badge-ministere {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 78px;
+      height: 78px;
+      border-radius: 18px;
+      margin-bottom: 1.8rem;
+      background: linear-gradient(135deg, var(--or), var(--or-clair));
+      color: var(--bleu-officiel);
+      font-size: 1.9rem;
+      box-shadow: 0 10px 24px rgba(212,166,60,0.28);
+    }
+
+    .sur-titre {
+      color: rgba(255,255,255,0.68);
+      text-transform: uppercase;
+      letter-spacing: 0.11em;
+      font-size: 0.78rem;
+      margin-bottom: 0.7rem;
+      font-weight: 600;
+    }
+
+    .titre-gauche {
+      font-family: 'Source Serif 4', serif;
+      font-size: 2.25rem;
+      line-height: 1.2;
+      color: #fff;
+      font-weight: 700;
+      margin-bottom: 1rem;
+    }
+
+    .trait-or {
+      width: 70px;
+      height: 4px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--or), var(--or-clair));
+      margin-bottom: 1.4rem;
+    }
+
+    .texte-gauche {
+      font-size: 1rem;
+      line-height: 1.8;
+      color: rgba(255,255,255,0.82);
+      max-width: 540px;
+      margin-bottom: 2rem;
+    }
+
+    .bloc-registre {
+      padding: 1.1rem 1.2rem;
+      border: 1px solid rgba(255,255,255,0.12);
+      background: rgba(255,255,255,0.06);
+      backdrop-filter: blur(4px);
+      border-radius: 16px;
+      max-width: 520px;
+    }
+
+    .bloc-registre .label {
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.11em;
+      color: rgba(255,255,255,0.62);
+      margin-bottom: 0.45rem;
+      font-weight: 600;
+    }
+
+    .bloc-registre .valeur {
+      font-family: 'Source Serif 4', serif;
+      font-size: 1.2rem;
+      color: #fff;
+      font-weight: 700;
+      line-height: 1.45;
+    }
+
+    /* ===== Panneau droit ===== */
+    .panneau-droit {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 3rem 2rem;
+    }
+
+    .carte-connexion {
+      width: 100%;
+      max-width: 460px;
+      background: rgba(255,255,255,0.96);
+      border: 1px solid rgba(18,52,91,0.08);
+      border-radius: 24px;
+      padding: 2.4rem;
+      box-shadow:
+        0 10px 35px rgba(18,52,91,0.10),
+        0 2px 8px rgba(18,52,91,0.05);
+    }
+
+    .entete-carte {
+      margin-bottom: 1.5rem;
+    }
+
+    .petit-titre {
+      display: inline-block;
+      font-size: 0.76rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--bleu-officiel);
+      font-weight: 700;
+      margin-bottom: 0.7rem;
+    }
+
+    .carte-connexion h2 {
+      font-family: 'Source Serif 4', serif;
+      font-size: 1.85rem;
+      line-height: 1.2;
+      color: var(--bleu-officiel);
+      margin-bottom: 0.35rem;
+      font-weight: 700;
+    }
+
+    .carte-connexion .sous-titre {
+      color: var(--muted);
+      font-size: 0.95rem;
+      line-height: 1.6;
+      margin-bottom: 0;
+    }
+
+    .separateur-carte {
+      width: 48px;
+      height: 4px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, var(--or), var(--or-clair));
+      margin: 1.4rem 0 1.8rem;
+    }
+
+    .alerte {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.6rem;
+      padding: 0.85rem 1rem;
+      border-radius: 12px;
+      margin-bottom: 1.2rem;
+      font-size: 0.92rem;
+      line-height: 1.5;
+    }
+
+    .alerte-danger {
+      background: var(--danger-bg);
+      border: 1px solid var(--danger-border);
+      color: var(--danger-text);
+    }
+
+    .champ {
+      margin-bottom: 1.15rem;
+    }
+
+    .champ-label {
+      display: block;
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: #243244;
+      margin-bottom: 0.45rem;
+      letter-spacing: 0.02em;
+    }
+
+    .groupe-champ {
+      position: relative;
+    }
+
+    .icone-champ {
+      position: absolute;
+      top: 50%;
+      left: 14px;
+      transform: translateY(-50%);
+      color: #8A94A6;
+      font-size: 0.9rem;
+      pointer-events: none;
+    }
+
+    .groupe-champ input {
+      width: 100%;
+      height: 52px;
+      border-radius: 12px;
+      border: 1.5px solid var(--bordure);
+      background: #FBFCFE;
+      padding: 0.85rem 0.95rem 0.85rem 2.7rem;
+      font-size: 0.95rem;
+      color: var(--texte);
+      outline: none;
+      transition: all 0.2s ease;
+    }
+
+    .groupe-champ input::placeholder {
+      color: #98A2B3;
+    }
+
+    .groupe-champ input:focus {
+      border-color: var(--bleu-officiel);
+      background: #fff;
+      box-shadow: 0 0 0 4px rgba(18,52,91,0.08);
+    }
+
+    .btn-oeil {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      border: none;
+      background: transparent;
+      color: #8A94A6;
+      padding: 0.2rem;
+      cursor: pointer;
+      font-size: 0.95rem;
+    }
+
+    .btn-connexion {
+      width: 100%;
+      border: none;
+      border-radius: 12px;
+      height: 54px;
+      margin-top: 0.4rem;
+      background: linear-gradient(135deg, var(--bleu-officiel), var(--bleu-secondaire));
+      color: #fff;
+      font-size: 0.96rem;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.6rem;
+      transition: all 0.2s ease;
+      box-shadow: 0 8px 18px rgba(18,52,91,0.16);
+    }
+
+    .btn-connexion:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 12px 24px rgba(18,52,91,0.22);
+      background: linear-gradient(135deg, #0D2747, #163B64);
+    }
+
+    .pied-carte {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 0.45rem;
+      margin-top: 1.4rem;
+      color: #7B8794;
+      font-size: 0.82rem;
+    }
+
+    .pied-carte i {
+      color: var(--or);
+    }
+
+    /* ===== Responsive ===== */
+    @media (max-width: 992px) {
+      .contenu-principal {
+        grid-template-columns: 1fr;
+      }
+
+      .panneau-gauche {
+        padding: 2.8rem 1.6rem;
+      }
+
+      .titre-gauche {
+        font-size: 1.8rem;
+      }
+
+      .panneau-droit {
+        padding: 2rem 1rem 2.5rem;
+      }
+
+      .carte-connexion {
+        max-width: 560px;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .bandeau-national {
+        padding: 0.9rem 1rem;
+      }
+
+      .bandeau-contenu {
+        align-items: flex-start;
+      }
+
+      .devise {
+        white-space: normal;
+        font-size: 0.74rem;
+        letter-spacing: 0.08em;
+      }
+
+      .panneau-gauche {
+        padding: 2.2rem 1.2rem;
+      }
+
+      .titre-gauche {
+        font-size: 1.55rem;
+      }
+
+      .texte-gauche {
+        font-size: 0.94rem;
+      }
+
+      .carte-connexion {
+        padding: 1.6rem 1.2rem;
+        border-radius: 18px;
+      }
+
+      .carte-connexion h2 {
+        font-size: 1.55rem;
+      }
+    }
+  </style>
 </head>
 <body>
-<div class="page">
+  <div class="page">
 
-  <!-- Bandeau drapeau + devise -->
-  <div class="bandeau-national">
-    <div class="d-flex align-items-center gap-3">
-      <div class="drapeau">
-        <div class="drapeau-vert"></div>
-        <div class="drapeau-jaune"><i class="fas fa-star"></i></div>
-        <div class="drapeau-rouge"></div>
-      </div>
-      <span class="republique-label">République du Sénégal</span>
-    </div>
-    <span class="devise-nationale">Un Peuple &mdash; Un But &mdash; Une Foi</span>
-  </div>
-
-  <div class="contenu-principal">
-    <div class="panneau-gauche">
-      <div class="entete-gauche">
-        <div class="embleme"><i class="fas fa-balance-scale"></i></div>
-        <div class="titre-ministere">Ministère de la Justice, Garde des Sceaux</div>
-        <div class="separateur-or"></div>
-        <p class="titre-registre">Registre National des<br><strong style="color:white">Bénéficiaires Effectifs</strong></p>
-      </div>
-    </div>
-
-    <div class="panneau-droit">
-      <div class="carte-connexion">
-        <h2>Connexion</h2>
-        <p class="sous-titre">Accédez à votre espace de déclaration</p>
-        <div class="separateur-carte"></div>
-
-        {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-          {% for cat, msg in messages %}
-          <div class="alerte alerte-{{ cat }}">
-            <i class="fas fa-exclamation-circle"></i> {{ msg }}
+    <!-- Bandeau officiel -->
+    <header class="bandeau-national">
+      <div class="bandeau-contenu">
+        <div class="bloc-etat">
+          <div class="drapeau" aria-label="Drapeau du Sénégal">
+            <div class="drapeau-vert"></div>
+            <div class="drapeau-jaune">
+              <i class="fas fa-star"></i>
+            </div>
+            <div class="drapeau-rouge"></div>
           </div>
-          {% endfor %}
-        {% endif %}
-        {% endwith %}
 
-        <form method="POST" action="{{ url_for('login') }}">
-          <label class="champ-label">Adresse email</label>
-          <div class="groupe-champ">
-            <i class="fas fa-envelope icone-champ"></i>
-            <input type="email" name="email" placeholder="votre@email.sn" required autofocus>
+          <div class="texte-etat">
+            <span class="republique">République du Sénégal</span>
+            <span class="pays">Ministère de la Justice, Garde des Sceaux</span>
           </div>
-          <label class="champ-label">Mot de passe</label>
-          <div class="groupe-champ">
-            <i class="fas fa-lock icone-champ"></i>
-            <input type="password" name="password" id="mdp" placeholder="Votre mot de passe" required>
-            <button type="button" class="btn-oeil" onclick="basculeOeil()">
-              <i class="fas fa-eye" id="icone-oeil"></i>
-            </button>
-          </div>
-          <button type="submit" class="btn-connexion">
-            <i class="fas fa-sign-in-alt"></i> Se connecter
-          </button>
-        </form>
-
-        <div class="pied-carte">
-          <i class="fas fa-shield-alt"></i> Connexion sécurisée
         </div>
+
+        <div class="devise">Un Peuple — Un But — Une Foi</div>
       </div>
-    </div>
+    </header>
+
+    <main class="contenu-principal">
+      <!-- Panneau institutionnel -->
+      <section class="panneau-gauche">
+        <div class="contenu-gauche">
+          <div class="badge-ministere">
+            <i class="fas fa-scale-balanced"></i>
+          </div>
+
+          <div class="sur-titre">Plateforme officielle</div>
+
+          <h1 class="titre-gauche">
+            Plateforme de saisie du<br>
+            Registre National des<br>
+            Bénéficiaires Effectifs
+          </h1>
+
+          <div class="trait-or"></div>
+
+          <p class="texte-gauche">
+            Accédez à l’espace sécurisé de déclaration et de gestion des informations
+            relatives aux bénéficiaires effectifs. Cette interface permet une saisie
+            structurée, sécurisée et conforme au cadre institutionnel.
+          </p>
+
+          <div class="bloc-registre">
+            <div class="label">Service concerné</div>
+            <div class="valeur">
+              Registre National des Bénéficiaires Effectifs
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Panneau connexion -->
+      <section class="panneau-droit">
+        <div class="carte-connexion">
+          <div class="entete-carte">
+            <span class="petit-titre">Espace de connexion</span>
+            <h2>Connexion à la plateforme</h2>
+            <p class="sous-titre">
+              Veuillez renseigner vos identifiants pour accéder à votre espace de saisie.
+            </p>
+          </div>
+
+          <div class="separateur-carte"></div>
+
+          {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for cat, msg in messages %}
+              <div class="alerte alerte-{{ cat }}">
+                <i class="fas fa-circle-exclamation mt-1"></i>
+                <span>{{ msg }}</span>
+              </div>
+            {% endfor %}
+          {% endif %}
+          {% endwith %}
+
+          <form method="POST" action="{{ url_for('login') }}">
+            <div class="champ">
+              <label class="champ-label">Adresse e-mail</label>
+              <div class="groupe-champ">
+                <i class="fas fa-envelope icone-champ"></i>
+                <input
+                  type="email"
+                  name="email"
+                  placeholder="votre@email.sn"
+                  required
+                  autofocus
+                >
+              </div>
+            </div>
+
+            <div class="champ">
+              <label class="champ-label">Mot de passe</label>
+              <div class="groupe-champ">
+                <i class="fas fa-lock icone-champ"></i>
+                <input
+                  type="password"
+                  name="password"
+                  id="mdp"
+                  placeholder="Votre mot de passe"
+                  required
+                >
+                <button type="button" class="btn-oeil" onclick="basculeOeil()">
+                  <i class="fas fa-eye" id="icone-oeil"></i>
+                </button>
+              </div>
+            </div>
+
+            <button type="submit" class="btn-connexion">
+              <i class="fas fa-right-to-bracket"></i>
+              Se connecter
+            </button>
+          </form>
+
+          <div class="pied-carte">
+            <i class="fas fa-shield-halved"></i>
+            <span>Connexion sécurisée</span>
+          </div>
+        </div>
+      </section>
+    </main>
   </div>
 
-</div>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
-<script>
-function basculeOeil() {
-  const champ = document.getElementById('mdp');
-  const icone = document.getElementById('icone-oeil');
-  if (champ.type === 'password') { champ.type = 'text'; icone.className = 'fas fa-eye-slash'; }
-  else { champ.type = 'password'; icone.className = 'fas fa-eye'; }
-}
-</script>
+  <script>
+    function basculeOeil() {
+      const champ = document.getElementById('mdp');
+      const icone = document.getElementById('icone-oeil');
+
+      if (champ.type === 'password') {
+        champ.type = 'text';
+        icone.className = 'fas fa-eye-slash';
+      } else {
+        champ.type = 'password';
+        icone.className = 'fas fa-eye';
+      }
+    }
+  </script>
 </body>
 </html>
