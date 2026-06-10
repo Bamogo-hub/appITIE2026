@@ -31,9 +31,15 @@
     <div class="etape" data-e="5"><span class="etape-num">E</span><span class="etape-libelle">Certification</span></div>
   </div>
 
+  <!-- Alerte erreurs de validation -->
+  <div id="alerte-validation" class="alerte-validation d-none mb-3">
+    <i class="fas fa-exclamation-circle me-2"></i>
+    <span id="alerte-validation-texte"></span>
+  </div>
+
   <form method="POST" enctype="multipart/form-data" id="formDeclaration" novalidate>
 
-    <!-- SECTION A -->
+    <!-- ══════ SECTION A ══════ -->
     <div class="section-form active" id="sec-1">
       <div class="carte">
         <div class="carte-corps">
@@ -41,19 +47,19 @@
             <div class="badge-section">A</div>
             <div>
               <h3 class="titre-section">Informations relatives à l'entité déclarante</h3>
-              <p class="desc-section">Identité et coordonnées de la société</p>
+              <p class="desc-section">Les champs marqués <span style="color:#B91C1C">*</span> sont obligatoires</p>
             </div>
           </div>
 
           <div class="row g-3">
             <div class="col-md-5">
               <label class="form-label requis">Dénomination Sociale</label>
-              <input type="text" name="denomination_sociale" class="form-control" required
+              <input type="text" name="denomination_sociale" class="form-control champ-requis" data-section="1"
                      value="{{ d.denomination_sociale if d else '' }}" placeholder="Nom complet de la société">
             </div>
             <div class="col-md-3">
               <label class="form-label requis">NINEA</label>
-              <input type="text" name="ninea" id="ninea" class="form-control" required
+              <input type="text" name="ninea" id="ninea" class="form-control champ-requis" data-section="1"
                      value="{{ d.ninea if d else '' }}" placeholder="Ex. 0043385142U2">
               <div id="retour-ninea" class="small mt-1"></div>
             </div>
@@ -64,7 +70,7 @@
             </div>
             <div class="col-md-3">
               <label class="form-label requis">Forme Juridique</label>
-              <select name="forme_juridique" class="form-select" required>
+              <select name="forme_juridique" class="form-select champ-requis" data-section="1">
                 <option value="">Sélectionner</option>
                 {% for f in ['SA','SARL','SUARL','SNC','SCS','GIE','Coopérative','Association','ONG','Autre','Non renseigné'] %}
                 <option value="{{ f }}" {% if d and d.forme_juridique == f %}selected{% endif %}>{{ f }}</option>
@@ -72,25 +78,30 @@
               </select>
             </div>
             <div class="col-md-3">
-              <label class="form-label">Région</label>
-              <select name="region" class="form-select">
+              <label class="form-label requis">Région</label>
+              <select name="region" class="form-select champ-requis" data-section="1">
                 <option value="">Sélectionner</option>
-                {% for r in ['Dakar','Thiès','Diourbel','Fatick','Kaolack','Kaffrine','Louga','Saint-Louis','Matam','Tambacounda','Kédougou','Kolda','Sédhiou','Ziguinchor','Autre','Non renseigné'] %}
+                {% for r in ['Dakar','Thiès','Diourbel','Fatick','Kaolack','Kaffrine','Louga','Saint-Louis','Matam','Tambacounda','Kédougou','Kolda','Sédhiou','Ziguinchor','Autre'] %}
                 <option value="{{ r }}" {% if d and d.region == r %}selected{% endif %}>{{ r }}</option>
                 {% endfor %}
               </select>
             </div>
             <div class="col-md-3">
-              <label class="form-label">Pays / État</label>
-              <input type="text" name="pays" class="form-control" value="{{ d.pays if d else 'SÉNÉGAL' }}">
+              <label class="form-label requis">Pays / État</label>
+              <div class="pays-autocomplete" id="ctn-pays-entite">
+                <input type="text" name="pays" id="inp-pays-entite" class="form-control champ-requis" data-section="1"
+                       value="{{ d.pays if d else '' }}" placeholder="Rechercher un pays..." autocomplete="off">
+                <div class="pays-liste" id="liste-pays-entite"></div>
+              </div>
             </div>
             <div class="col-md-3">
               <label class="form-label">Ville</label>
               <input type="text" name="ville" class="form-control" value="{{ d.ville if d else '' }}" placeholder="Ex. Dakar">
             </div>
             <div class="col-md-6">
-              <label class="form-label">Siège social / Adresse</label>
-              <input type="text" name="adresse" class="form-control" value="{{ d.adresse if d else '' }}" placeholder="Adresse complète">
+              <label class="form-label requis">Siège social / Adresse</label>
+              <input type="text" name="adresse" class="form-control champ-requis" data-section="1"
+                     value="{{ d.adresse if d else '' }}" placeholder="Adresse complète">
             </div>
             <div class="col-md-3">
               <label class="form-label">Téléphone</label>
@@ -103,44 +114,48 @@
           </div>
 
           <div class="bloc-interne mt-3">
-            <div class="titre-bloc"><i class="fas fa-chart-line me-2"></i>Statut de l'entité</div>
+            <div class="titre-bloc"><i class="fas fa-building me-2"></i>Statut de l'entité <span style="color:#B91C1C;font-size:0.8rem">— Toutes les réponses sont obligatoires</span></div>
             <div class="row g-3">
               <div class="col-md-6">
-                <label class="form-label">Entreprise non cotée en bourse ?</label>
-                <div class="groupe-radio">
+                <label class="form-label requis">Entreprise non cotée en bourse ?</label>
+                <div class="groupe-radio" id="grp-cotee-bourse">
                   {% for opt in ['Oui','Non','Non renseigné'] %}
                   <label class="option-radio {% if d and d.cotee_bourse == opt %}selectionne{% endif %}">
-                    <input type="radio" name="cotee_bourse" value="{{ opt }}" {% if d and d.cotee_bourse == opt %}checked{% elif not d and opt == 'Non' %}checked{% endif %}>{{ opt }}
+                    <input type="radio" name="cotee_bourse" value="{{ opt }}" class="radio-requis" data-section="1" data-groupe="cotee_bourse"
+                    {% if d and d.cotee_bourse == opt %}checked{% endif %}>{{ opt }}
                   </label>
                   {% endfor %}
                 </div>
               </div>
               <div class="col-md-6">
-                <label class="form-label">Cotée ou filiale d'une entreprise cotée ?</label>
-                <div class="groupe-radio">
+                <label class="form-label requis">Cotée ou filiale d'une entreprise cotée ?</label>
+                <div class="groupe-radio" id="grp-filiale-cotee">
                   {% for opt in ['Oui','Non','Non renseigné'] %}
                   <label class="option-radio {% if d and d.filiale_cotee == opt %}selectionne{% endif %}">
-                    <input type="radio" name="filiale_cotee" value="{{ opt }}" data-affiche="champs-bourse" {% if d and d.filiale_cotee == opt %}checked{% elif not d and opt == 'Non' %}checked{% endif %}>{{ opt }}
+                    <input type="radio" name="filiale_cotee" value="{{ opt }}" class="radio-requis" data-section="1" data-groupe="filiale_cotee" data-affiche="champs-bourse"
+                    {% if d and d.filiale_cotee == opt %}checked{% endif %}>{{ opt }}
                   </label>
                   {% endfor %}
                 </div>
               </div>
               <div class="col-md-6">
-                <label class="form-label">Entreprise d'État ?</label>
-                <div class="groupe-radio">
+                <label class="form-label requis">Entreprise d'État ?</label>
+                <div class="groupe-radio" id="grp-entreprise-etat">
                   {% for opt in ['Oui','Non','Non renseigné'] %}
                   <label class="option-radio {% if d and d.entreprise_etat == opt %}selectionne{% endif %}">
-                    <input type="radio" name="entreprise_etat" value="{{ opt }}" {% if d and d.entreprise_etat == opt %}checked{% elif not d and opt == 'Non' %}checked{% endif %}>{{ opt }}
+                    <input type="radio" name="entreprise_etat" value="{{ opt }}" class="radio-requis" data-section="1" data-groupe="entreprise_etat"
+                    {% if d and d.entreprise_etat == opt %}checked{% endif %}>{{ opt }}
                   </label>
                   {% endfor %}
                 </div>
               </div>
               <div class="col-md-6">
-                <label class="form-label">Autre type d'entité ?</label>
-                <div class="groupe-radio">
+                <label class="form-label requis">Autre type d'entité ?</label>
+                <div class="groupe-radio" id="grp-autre-entite">
                   {% for opt in ['Oui','Non','Non renseigné'] %}
                   <label class="option-radio {% if d and d.autre_entite == opt %}selectionne{% endif %}">
-                    <input type="radio" name="autre_entite" value="{{ opt }}" {% if d and d.autre_entite == opt %}checked{% elif not d and opt == 'Non' %}checked{% endif %}>{{ opt }}
+                    <input type="radio" name="autre_entite" value="{{ opt }}" class="radio-requis" data-section="1" data-groupe="autre_entite"
+                    {% if d and d.autre_entite == opt %}checked{% endif %}>{{ opt }}
                   </label>
                   {% endfor %}
                 </div>
@@ -160,7 +175,7 @@
                     <input type="text" name="place_boursiere" class="form-control" value="{{ d.place_boursiere if d else '' }}">
                   </div>
                   <div class="col-md-4">
-                    <label class="form-label">Numéro ISIN / Stock ISIN</label>
+                    <label class="form-label">Numéro ISIN</label>
                     <input type="text" name="numero_isin" class="form-control" value="{{ d.numero_isin if d else '' }}">
                   </div>
                   <div class="col-md-4">
@@ -171,17 +186,16 @@
               </div>
             </div>
           </div>
-
         </div>
       </div>
       <div class="d-flex justify-content-end mt-3">
-        <button type="button" class="btn-primaire btn-suivant" data-cible="2">
+        <button type="button" class="btn-primaire btn-suivant" data-cible="2" data-section-val="1">
           Suivant : Bénéficiaire <i class="fas fa-arrow-right ms-2"></i>
         </button>
       </div>
     </div>
 
-    <!-- SECTION B -->
+    <!-- ══════ SECTION B ══════ -->
     <div class="section-form" id="sec-2">
       <div class="carte">
         <div class="carte-corps">
@@ -189,22 +203,24 @@
             <div class="badge-section">B</div>
             <div>
               <h3 class="titre-section">Informations sur le Bénéficiaire Effectif</h3>
-              <p class="desc-section">Identité et statut de la personne physique concernée</p>
+              <p class="desc-section">Les champs marqués <span style="color:#B91C1C">*</span> sont obligatoires</p>
             </div>
           </div>
 
           <div class="row g-3">
             <div class="col-md-4">
               <label class="form-label requis">Nom complet (Identité)</label>
-              <input type="text" name="nom_beneficiaire" class="form-control" required value="{{ d.nom_beneficiaire if d else '' }}" placeholder="NOM DE FAMILLE">
+              <input type="text" name="nom_beneficiaire" class="form-control champ-requis" data-section="2"
+                     value="{{ d.nom_beneficiaire if d else '' }}" placeholder="NOM DE FAMILLE">
             </div>
             <div class="col-md-4">
               <label class="form-label requis">Prénom(s)</label>
-              <input type="text" name="prenom_beneficiaire" class="form-control" required value="{{ d.prenom_beneficiaire if d else '' }}" placeholder="Prénom(s)">
+              <input type="text" name="prenom_beneficiaire" class="form-control champ-requis" data-section="2"
+                     value="{{ d.prenom_beneficiaire if d else '' }}" placeholder="Prénom(s)">
             </div>
             <div class="col-md-2">
-              <label class="form-label">Sexe</label>
-              <select name="sexe" class="form-select">
+              <label class="form-label requis">Sexe</label>
+              <select name="sexe" class="form-select champ-requis" data-section="2">
                 <option value="">Sélectionner</option>
                 <option value="Masculin" {% if d and d.sexe == 'Masculin' %}selected{% endif %}>Masculin</option>
                 <option value="Féminin" {% if d and d.sexe == 'Féminin' %}selected{% endif %}>Féminin</option>
@@ -212,28 +228,39 @@
               </select>
             </div>
             <div class="col-md-2">
-              <label class="form-label">Date de naissance</label>
-              <input type="date" name="date_naissance" class="form-control" value="{{ d.date_naissance if d else '' }}">
+              <label class="form-label requis">Date de naissance</label>
+              <input type="date" name="date_naissance" class="form-control champ-requis" data-section="2"
+                     value="{{ d.date_naissance if d else '' }}">
             </div>
             <div class="col-md-3">
               <label class="form-label">Lieu de naissance</label>
               <input type="text" name="lieu_naissance" class="form-control" value="{{ d.lieu_naissance if d else '' }}">
             </div>
             <div class="col-md-3">
-              <label class="form-label">Nationalité(s)</label>
-              <input type="text" name="nationalite" class="form-control" value="{{ d.nationalite if d else '' }}" placeholder="Ex. SÉNÉGALAISE">
+              <label class="form-label requis">Nationalité(s)</label>
+              <div class="pays-autocomplete" id="ctn-nationalite">
+                <input type="text" name="nationalite" id="inp-nationalite" class="form-control champ-requis" data-section="2"
+                       value="{{ d.nationalite if d else '' }}" placeholder="Rechercher une nationalité..." autocomplete="off">
+                <div class="pays-liste" id="liste-nationalite"></div>
+              </div>
             </div>
             <div class="col-md-3">
-              <label class="form-label">Pays de résidence</label>
-              <input type="text" name="pays_residence" class="form-control" value="{{ d.pays_residence if d else '' }}">
+              <label class="form-label requis">Pays de résidence</label>
+              <div class="pays-autocomplete" id="ctn-pays-residence">
+                <input type="text" name="pays_residence" id="inp-pays-residence" class="form-control champ-requis" data-section="2"
+                       value="{{ d.pays_residence if d else '' }}" placeholder="Rechercher un pays..." autocomplete="off">
+                <div class="pays-liste" id="liste-pays-residence"></div>
+              </div>
             </div>
             <div class="col-md-3">
-              <label class="form-label">N° CNI / Passeport</label>
-              <input type="text" name="numero_cni" class="form-control" value="{{ d.numero_cni if d else '' }}" placeholder="Numéro du document">
+              <label class="form-label requis">N° CNI / Passeport</label>
+              <input type="text" name="numero_cni" class="form-control champ-requis" data-section="2"
+                     value="{{ d.numero_cni if d else '' }}" placeholder="Numéro du document">
             </div>
             <div class="col-md-6">
-              <label class="form-label">Adresse personnelle</label>
-              <input type="text" name="adresse_personnelle" class="form-control" value="{{ d.adresse_personnelle if d else '' }}">
+              <label class="form-label requis">Adresse personnelle</label>
+              <input type="text" name="adresse_personnelle" class="form-control champ-requis" data-section="2"
+                     value="{{ d.adresse_personnelle if d else '' }}">
             </div>
             <div class="col-md-6">
               <label class="form-label">Adresse professionnelle</label>
@@ -242,24 +269,26 @@
           </div>
 
           <div class="bloc-interne mt-3">
-            <div class="titre-bloc"><i class="fas fa-user-tie me-2"></i>Personne Politiquement Exposée (PPE)</div>
+            <div class="titre-bloc"><i class="fas fa-user-tie me-2"></i>Personne Politiquement Exposée (PPE) <span style="color:#B91C1C;font-size:0.8rem">— Réponses obligatoires</span></div>
             <div class="row g-3">
               <div class="col-md-6">
-                <label class="form-label">Êtes-vous une Personne Politiquement Exposée (PPE) ?</label>
+                <label class="form-label requis">Êtes-vous une Personne Politiquement Exposée (PPE) ?</label>
                 <div class="groupe-radio">
                   {% for opt in ['Oui','Non','Non renseigné'] %}
                   <label class="option-radio {% if d and d.ppe == opt %}selectionne{% endif %} {% if opt == 'Oui' %}danger{% endif %}">
-                    <input type="radio" name="ppe" value="{{ opt }}" data-affiche="champs-ppe" {% if d and d.ppe == opt %}checked{% elif not d and opt == 'Non' %}checked{% endif %}>{{ opt }}
+                    <input type="radio" name="ppe" value="{{ opt }}" class="radio-requis" data-section="2" data-groupe="ppe" data-affiche="champs-ppe"
+                    {% if d and d.ppe == opt %}checked{% endif %}>{{ opt }}
                   </label>
                   {% endfor %}
                 </div>
               </div>
               <div class="col-md-6">
-                <label class="form-label">Êtes-vous en relation avec une PPE ?</label>
+                <label class="form-label requis">Êtes-vous en relation avec une PPE ?</label>
                 <div class="groupe-radio">
                   {% for opt in ['Oui','Non','Non renseigné'] %}
                   <label class="option-radio {% if d and d.relation_ppe == opt %}selectionne{% endif %}">
-                    <input type="radio" name="relation_ppe" value="{{ opt }}" {% if d and d.relation_ppe == opt %}checked{% elif not d and opt == 'Non' %}checked{% endif %}>{{ opt }}
+                    <input type="radio" name="relation_ppe" value="{{ opt }}" class="radio-requis" data-section="2" data-groupe="relation_ppe"
+                    {% if d and d.relation_ppe == opt %}checked{% endif %}>{{ opt }}
                   </label>
                   {% endfor %}
                 </div>
@@ -281,7 +310,6 @@
                       <option value="PPE nationale" {% if d and d.categorie_ppe == 'PPE nationale' %}selected{% endif %}>PPE nationale</option>
                       <option value="PPE étrangère" {% if d and d.categorie_ppe == 'PPE étrangère' %}selected{% endif %}>PPE étrangère</option>
                       <option value="PPE organisation internationale" {% if d and d.categorie_ppe == 'PPE organisation internationale' %}selected{% endif %}>PPE organisation internationale</option>
-                      <option value="Non renseigné">Non renseigné</option>
                     </select>
                   </div>
                   <div class="col-md-2">
@@ -304,11 +332,11 @@
       </div>
       <div class="d-flex justify-content-between mt-3">
         <button type="button" class="btn btn-outline-secondary btn-precedent" data-cible="1"><i class="fas fa-arrow-left me-2"></i>Précédent</button>
-        <button type="button" class="btn-primaire btn-suivant" data-cible="3">Suivant : Participation <i class="fas fa-arrow-right ms-2"></i></button>
+        <button type="button" class="btn-primaire btn-suivant" data-cible="3" data-section-val="2">Suivant : Participation <i class="fas fa-arrow-right ms-2"></i></button>
       </div>
     </div>
 
-    <!-- SECTION C -->
+    <!-- ══════ SECTION C ══════ -->
     <div class="section-form" id="sec-3">
       <div class="carte">
         <div class="carte-corps">
@@ -316,85 +344,95 @@
             <div class="badge-section">C</div>
             <div>
               <h3 class="titre-section">Participation et Contrôle</h3>
-              <p class="desc-section">Mode de détention de la propriété et exercice du contrôle sur la société</p>
+              <p class="desc-section">Les champs marqués <span style="color:#B91C1C">*</span> sont obligatoires</p>
             </div>
           </div>
 
           <div class="bloc-interne">
             <div class="titre-bloc"><i class="fas fa-share-alt me-2"></i>Parts sociales directes d'au moins 2%</div>
-            <div class="row g-3">
+            <div class="row g-3 align-items-start">
               <div class="col-md-3">
-                <label class="form-label">Parts directes ≥ 2% ?</label>
+                <label class="form-label requis">Parts directes ≥ 2% ?</label>
                 <div class="groupe-radio">
                   {% for opt in ['Oui','Non','Non renseigné'] %}
                   <label class="option-radio {% if d and d.parts_directes == opt %}selectionne{% endif %}">
-                    <input type="radio" name="parts_directes" value="{{ opt }}" {% if d and d.parts_directes == opt %}checked{% endif %}>{{ opt }}
+                    <input type="radio" name="parts_directes" value="{{ opt }}" class="radio-requis radio-grille" data-section="3" data-groupe="parts_directes" data-cible-grille="grille-parts-directes"
+                    {% if d and d.parts_directes == opt %}checked{% endif %}>{{ opt }}
                   </label>
                   {% endfor %}
                 </div>
               </div>
-              <div class="col-md-3">
-                <label class="form-label">Nombre de parts</label>
-                <input type="number" name="nombre_parts_directes" class="form-control" min="0" value="{{ d.nombre_parts_directes if d else '' }}">
-              </div>
-              <div class="col-md-3">
-                <label class="form-label">Pourcentage de participation (%)</label>
-                <input type="number" name="pourcentage_participation" class="form-control" min="0" max="100" step="0.01" value="{{ d.pourcentage_participation if d else '' }}" placeholder="0.00">
+              <div id="grille-parts-directes" class="col-md-6 row g-3 {% if d and d.parts_directes == 'Oui' %}{% else %}champs-grilles{% endif %}">
+                <div class="col-md-6">
+                  <label class="form-label">Nombre de parts</label>
+                  <input type="number" name="nombre_parts_directes" class="form-control" min="0" value="{{ d.nombre_parts_directes if d else '' }}">
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Pourcentage de participation (%)</label>
+                  <input type="number" name="pourcentage_participation" class="form-control" min="0" max="100" step="0.01" value="{{ d.pourcentage_participation if d else '' }}" placeholder="0.00">
+                </div>
               </div>
             </div>
           </div>
 
           <div class="bloc-interne mt-3">
             <div class="titre-bloc"><i class="fas fa-vote-yea me-2"></i>Droits de vote directs</div>
-            <div class="row g-3">
+            <div class="row g-3 align-items-start">
               <div class="col-md-3">
-                <label class="form-label">Droits de vote directs ?</label>
+                <label class="form-label requis">Droits de vote directs ?</label>
                 <div class="groupe-radio">
                   {% for opt in ['Oui','Non','Non renseigné'] %}
                   <label class="option-radio {% if d and d.droits_vote_directs == opt %}selectionne{% endif %}">
-                    <input type="radio" name="droits_vote_directs" value="{{ opt }}" {% if d and d.droits_vote_directs == opt %}checked{% endif %}>{{ opt }}
+                    <input type="radio" name="droits_vote_directs" value="{{ opt }}" class="radio-requis radio-grille" data-section="3" data-groupe="droits_vote_directs" data-cible-grille="grille-vote-directs"
+                    {% if d and d.droits_vote_directs == opt %}checked{% endif %}>{{ opt }}
                   </label>
                   {% endfor %}
                 </div>
               </div>
-              <div class="col-md-3">
-                <label class="form-label">Nombre de voix</label>
-                <input type="number" name="nombre_voix" class="form-control" min="0" value="{{ d.nombre_voix if d else '' }}">
-              </div>
-              <div class="col-md-3">
-                <label class="form-label">Pourcentage des voix (%)</label>
-                <input type="number" name="pourcentage_voix" class="form-control" min="0" max="100" step="0.01" value="{{ d.pourcentage_voix if d else '' }}" placeholder="0.00">
+              <div id="grille-vote-directs" class="col-md-6 row g-3 {% if not (d and d.droits_vote_directs == 'Oui') %}champs-grilles{% endif %}">
+                <div class="col-md-6">
+                  <label class="form-label">Nombre de voix</label>
+                  <input type="number" name="nombre_voix" class="form-control" min="0" value="{{ d.nombre_voix if d else '' }}">
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Pourcentage des voix (%)</label>
+                  <input type="number" name="pourcentage_voix" class="form-control" min="0" max="100" step="0.01" value="{{ d.pourcentage_voix if d else '' }}" placeholder="0.00">
+                </div>
               </div>
             </div>
           </div>
 
           <div class="bloc-interne mt-3">
             <div class="titre-bloc"><i class="fas fa-project-diagram me-2"></i>Parts sociales indirectes d'au moins 2%</div>
-            <div class="row g-3">
+            <div class="row g-3 align-items-start">
               <div class="col-md-3">
-                <label class="form-label">Parts indirectes ≥ 2% ?</label>
+                <label class="form-label requis">Parts indirectes ≥ 2% ?</label>
                 <div class="groupe-radio">
                   {% for opt in ['Oui','Non','Non renseigné'] %}
                   <label class="option-radio {% if d and d.parts_indirectes == opt %}selectionne{% endif %}">
-                    <input type="radio" name="parts_indirectes" value="{{ opt }}" {% if d and d.parts_indirectes == opt %}checked{% endif %}>{{ opt }}
+                    <input type="radio" name="parts_indirectes" value="{{ opt }}" class="radio-requis radio-grille" data-section="3" data-groupe="parts_indirectes" data-cible-grille="grille-parts-indirectes"
+                    {% if d and d.parts_indirectes == opt %}checked{% endif %}>{{ opt }}
                   </label>
                   {% endfor %}
                 </div>
               </div>
-              <div class="col-md-3">
-                <label class="form-label">Nombre de parts indirectes</label>
-                <input type="number" name="nombre_parts_indirectes" class="form-control" min="0" value="{{ d.nombre_parts_indirectes if d else '' }}">
+              <div id="grille-parts-indirectes" class="col-md-6 row g-3 {% if not (d and d.parts_indirectes == 'Oui') %}champs-grilles{% endif %}">
+                <div class="col-md-6">
+                  <label class="form-label">Nombre de parts indirectes</label>
+                  <input type="number" name="nombre_parts_indirectes" class="form-control" min="0" value="{{ d.nombre_parts_indirectes if d else '' }}">
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Participation indirecte (%)</label>
+                  <input type="number" name="pourcentage_participation_indirecte" class="form-control" min="0" max="100" step="0.01" value="{{ d.pourcentage_participation_indirecte if d else '' }}">
+                </div>
               </div>
               <div class="col-md-3">
-                <label class="form-label">Participation indirecte (%)</label>
-                <input type="number" name="pourcentage_participation_indirecte" class="form-control" min="0" max="100" step="0.01" value="{{ d.pourcentage_participation_indirecte if d else '' }}">
-              </div>
-              <div class="col-md-3">
-                <label class="form-label">Droits de vote indirects ?</label>
+                <label class="form-label requis">Droits de vote indirects ?</label>
                 <div class="groupe-radio">
                   {% for opt in ['Oui','Non','Non renseigné'] %}
                   <label class="option-radio {% if d and d.droits_vote_indirects == opt %}selectionne{% endif %}">
-                    <input type="radio" name="droits_vote_indirects" value="{{ opt }}" {% if d and d.droits_vote_indirects == opt %}checked{% endif %}>{{ opt }}
+                    <input type="radio" name="droits_vote_indirects" value="{{ opt }}" class="radio-requis" data-section="3" data-groupe="droits_vote_indirects"
+                    {% if d and d.droits_vote_indirects == opt %}checked{% endif %}>{{ opt }}
                   </label>
                   {% endfor %}
                 </div>
@@ -406,25 +444,28 @@
             <div class="titre-bloc"><i class="fas fa-gavel me-2"></i>Représentation et contrôle légal</div>
             <div class="row g-3">
               <div class="col-md-4">
-                <label class="form-label">Le bénéficiaire est-il le représentant légal ?</label>
+                <label class="form-label requis">Le bénéficiaire est-il le représentant légal ?</label>
                 <div class="groupe-radio">
                   {% for opt in ['Oui','Non','Non renseigné'] %}
                   <label class="option-radio {% if d and d.representant_legal == opt %}selectionne{% endif %}">
-                    <input type="radio" name="representant_legal" value="{{ opt }}" {% if d and d.representant_legal == opt %}checked{% endif %}>{{ opt }}
+                    <input type="radio" name="representant_legal" value="{{ opt }}" class="radio-requis" data-section="3" data-groupe="representant_legal"
+                    {% if d and d.representant_legal == opt %}checked{% endif %}>{{ opt }}
                   </label>
                   {% endfor %}
                 </div>
               </div>
               <div class="col-md-4">
-                <label class="form-label">Date d'acquisition de la propriété</label>
-                <input type="date" name="date_beneficiaire" class="form-control" value="{{ d.date_beneficiaire if d else '' }}">
+                <label class="form-label requis">Date d'acquisition de la propriété</label>
+                <input type="date" name="date_beneficiaire" class="form-control champ-requis" data-section="3"
+                       value="{{ d.date_beneficiaire if d else '' }}">
               </div>
               <div class="col-md-4">
-                <label class="form-label">Autres bénéficiaires effectifs (personnes physiques) ?</label>
+                <label class="form-label requis">Autres bénéficiaires effectifs ?</label>
                 <div class="groupe-radio">
                   {% for opt in ['Oui','Non','Non renseigné'] %}
                   <label class="option-radio {% if d and d.autres_beneficiaires == opt %}selectionne{% endif %}">
-                    <input type="radio" name="autres_beneficiaires" value="{{ opt }}" {% if d and d.autres_beneficiaires == opt %}checked{% endif %}>{{ opt }}
+                    <input type="radio" name="autres_beneficiaires" value="{{ opt }}" class="radio-requis" data-section="3" data-groupe="autres_beneficiaires"
+                    {% if d and d.autres_beneficiaires == opt %}checked{% endif %}>{{ opt }}
                   </label>
                   {% endfor %}
                 </div>
@@ -435,11 +476,11 @@
       </div>
       <div class="d-flex justify-content-between mt-3">
         <button type="button" class="btn btn-outline-secondary btn-precedent" data-cible="2"><i class="fas fa-arrow-left me-2"></i>Précédent</button>
-        <button type="button" class="btn-primaire btn-suivant" data-cible="4">Suivant : Documents <i class="fas fa-arrow-right ms-2"></i></button>
+        <button type="button" class="btn-primaire btn-suivant" data-cible="4" data-section-val="3">Suivant : Documents <i class="fas fa-arrow-right ms-2"></i></button>
       </div>
     </div>
 
-    <!-- SECTION D -->
+    <!-- ══════ SECTION D ══════ -->
     <div class="section-form" id="sec-4">
       <div class="carte">
         <div class="carte-corps">
@@ -447,11 +488,11 @@
             <div class="badge-section">D</div>
             <div>
               <h3 class="titre-section">Documents Justificatifs</h3>
-              <p class="desc-section">Pièces à joindre (PDF, ZIP, DOCX, XLSX &mdash; taille maximale 100 Mo)</p>
+              <p class="desc-section">Le document justificatif est <span style="color:#B91C1C;font-weight:700">obligatoire</span> (PDF, ZIP, DOCX, XLSX — taille maximale 100 Mo)</p>
             </div>
           </div>
 
-          <div class="zone-depot" id="zoneDepot">
+          <div class="zone-depot {% if not (fichiers and fichiers|length > 0) %}zone-depot-requise{% endif %}" id="zoneDepot">
             <input type="file" name="documents" id="champFichiers" multiple accept=".pdf,.zip,.docx,.xlsx" class="d-none">
             <div class="icone"><i class="fas fa-cloud-upload-alt"></i></div>
             <h5 style="font-size:1rem; color:#1C3557">Déposez vos fichiers ici ou cliquez pour sélectionner</h5>
@@ -460,6 +501,7 @@
               <i class="fas fa-folder-open me-2"></i>Parcourir
             </button>
           </div>
+          <div id="erreur-fichier" class="small text-danger mt-1 d-none"><i class="fas fa-exclamation-circle me-1"></i>Veuillez joindre au moins un document justificatif.</div>
 
           <div id="listeFichiers" class="mt-3"></div>
 
@@ -485,11 +527,11 @@
       </div>
       <div class="d-flex justify-content-between mt-3">
         <button type="button" class="btn btn-outline-secondary btn-precedent" data-cible="3"><i class="fas fa-arrow-left me-2"></i>Précédent</button>
-        <button type="button" class="btn-primaire btn-suivant" data-cible="5">Suivant : Certification <i class="fas fa-arrow-right ms-2"></i></button>
+        <button type="button" class="btn-primaire btn-suivant" data-cible="5" data-section-val="4">Suivant : Certification <i class="fas fa-arrow-right ms-2"></i></button>
       </div>
     </div>
 
-    <!-- SECTION E -->
+    <!-- ══════ SECTION E ══════ -->
     <div class="section-form" id="sec-5">
       <div class="carte">
         <div class="carte-corps">
@@ -497,23 +539,25 @@
             <div class="badge-section">E</div>
             <div>
               <h3 class="titre-section">Certification Complète</h3>
-              <p class="desc-section">Attestation et identification du signataire</p>
+              <p class="desc-section">Les champs marqués <span style="color:#B91C1C">*</span> sont obligatoires</p>
             </div>
           </div>
 
           <div class="p-4 rounded" style="background:#EBF8FF; border:1px solid #BEE3F8">
-            <p class="text-muted mb-3" style="font-size:0.875rem">
+            <p style="font-size:0.875rem; color:#4A5568; margin-bottom:1rem">
               <i class="fas fa-info-circle me-2 text-primary"></i>
               Je soussigné(e), certifie que les informations contenues dans la présente déclaration sont exactes et complètes, conformément aux dispositions légales en vigueur en République du Sénégal.
             </p>
             <div class="row g-3">
               <div class="col-md-6">
                 <label class="form-label requis">Certification faite par</label>
-                <input type="text" name="certifie_par" class="form-control" required value="{{ d.certifie_par if d else '' }}" placeholder="NOM Prénom du signataire">
+                <input type="text" name="certifie_par" class="form-control champ-requis" data-section="5"
+                       value="{{ d.certifie_par if d else '' }}" placeholder="NOM Prénom du signataire">
               </div>
               <div class="col-md-6">
                 <label class="form-label requis">Fonction</label>
-                <input type="text" name="fonction_certifiant" class="form-control" required value="{{ d.fonction_certifiant if d else '' }}" placeholder="Ex. Gérant, Directeur Général...">
+                <input type="text" name="fonction_certifiant" class="form-control champ-requis" data-section="5"
+                       value="{{ d.fonction_certifiant if d else '' }}" placeholder="Ex. Gérant, Directeur Général...">
               </div>
             </div>
           </div>
@@ -521,7 +565,7 @@
       </div>
       <div class="d-flex justify-content-between mt-3">
         <button type="button" class="btn btn-outline-secondary btn-precedent" data-cible="4"><i class="fas fa-arrow-left me-2"></i>Précédent</button>
-        <button type="submit" class="btn btn-success px-5" style="font-size:0.95rem; font-weight:700; padding:0.65rem 2rem; border-radius:8px">
+        <button type="submit" id="btnSoumettre" class="btn btn-success px-5" style="font-size:0.95rem; font-weight:700; padding:0.65rem 2rem; border-radius:8px">
           <i class="fas fa-paper-plane me-2"></i>
           {% if edit %}Enregistrer les modifications{% else %}Soumettre la déclaration{% endif %}
         </button>
@@ -534,25 +578,110 @@
 
 {% block js_extra %}
 <script>
-// Navigation par étapes
-function afficherSection(n) {
-  document.querySelectorAll('.section-form').forEach(s => s.classList.remove('active'));
-  document.querySelectorAll('.etape').forEach((e, i) => {
-    e.classList.toggle('active', i + 1 === n);
-    e.classList.toggle('finie', i + 1 < n);
+// ─── LISTE DES PAYS ───────────────────────────────────────────────────────────
+const PAYS = [
+  'Afghanistan','Afrique du Sud','Albanie','Algérie','Allemagne','Andorre','Angola','Antigua-et-Barbuda',
+  'Arabie Saoudite','Argentine','Arménie','Australie','Autriche','Azerbaïdjan',
+  'Bahamas','Bahreïn','Bangladesh','Barbade','Belgique','Bélize','Bénin','Bhoutan','Biélorussie',
+  'Bolivie','Bosnie-Herzégovine','Botswana','Brésil','Brunei','Bulgarie','Burkina Faso','Burundi',
+  'Cabo Verde','Cambodge','Cameroun','Canada','Centrafrique','Chili','Chine','Chypre','Colombie',
+  'Comores','Congo','Congo (RDC)','Corée du Nord','Corée du Sud','Costa Rica','Côte d\'Ivoire',
+  'Croatie','Cuba','Danemark','Djibouti','Dominique','Égypte','Émirats Arabes Unis','Équateur',
+  'Érythrée','Espagne','Eswatini','Estonie','États-Unis','Éthiopie','Fidji','Finlande','France',
+  'Gabon','Gambie','Géorgie','Ghana','Grèce','Grenade','Guatemala','Guinée','Guinée Bissau',
+  'Guinée Équatoriale','Guyana','Haïti','Honduras','Hongrie','Îles Marshall','Îles Salomon','Inde',
+  'Indonésie','Irak','Iran','Irlande','Islande','Israël','Italie','Jamaïque','Japon','Jordanie',
+  'Kazakhstan','Kenya','Kirghizistan','Kiribati','Koweït','Laos','Lesotho','Lettonie','Liban',
+  'Liberia','Libye','Liechtenstein','Lituanie','Luxembourg','Macédoine du Nord','Madagascar','Malaisie',
+  'Malawi','Maldives','Mali','Malte','Maroc','Maurice','Mauritanie','Mexique','Micronésie','Moldavie',
+  'Monaco','Mongolie','Monténégro','Mozambique','Myanmar','Namibie','Nauru','Népal','Nicaragua',
+  'Niger','Nigeria','Norvège','Nouvelle-Zélande','Oman','Ouganda','Ouzbékistan','Pakistan','Palaos',
+  'Palestine','Panama','Papouasie-Nouvelle-Guinée','Paraguay','Pays-Bas','Pérou','Philippines',
+  'Pologne','Portugal','Qatar','Roumanie','Royaume-Uni','Russie','Rwanda','Saint-Kitts-et-Nevis',
+  'Saint-Marin','Saint-Vincent-et-les-Grenadines','Sainte-Lucie','Salvador','Samoa','São Tomé-et-Príncipe',
+  'Sénégal','Serbie','Seychelles','Sierra Leone','Singapour','Slovaquie','Slovénie','Somalie',
+  'Soudan','Soudan du Sud','Sri Lanka','Suède','Suisse','Suriname','Syrie','Tadjikistan','Tanzanie',
+  'Tchad','Thaïlande','Timor Oriental','Togo','Tonga','Trinité-et-Tobago','Tunisie','Turkménistan',
+  'Türkiye','Tuvalu','Ukraine','Uruguay','Vanuatu','Vatican','Venezuela','Vietnam','Yémen','Zambie','Zimbabwe'
+];
+
+const NATIONALITES = [
+  'Afghane','Albanaise','Algérienne','Allemande','Angolaise','Argentine','Arménienne','Australienne',
+  'Autrichienne','Azerbaïdjanaise','Belge','Béninoise','Bolivienne','Brésilienne','Bulgare',
+  'Burkinabè','Burundaise','Cambodgienne','Camerounaise','Canadienne','Chilienne','Chinoise',
+  'Colombienne','Comorienne','Congolaise','Coréenne','Cubaine','Danoise','Djiboutienne',
+  'Égyptienne','Équatorienne','Espagnole','Éthiopienne','Française','Gabonaise','Gambienne',
+  'Ghanéenne','Grecque','Guinéenne','Haïtienne','Hongroise','Indienne','Indonésienne','Irakienne',
+  'Iranienne','Irlandaise','Israélienne','Italienne','Jamaïcaine','Japonaise','Jordanienne',
+  'Kazakhe','Kényane','Laotienne','Libanaise','Libérienne','Libyenne','Luxembourgeoise',
+  'Malgache','Malaisienne','Malawite','Malienne','Marocaine','Mauritanienne','Mexicaine',
+  'Moldave','Mozambicaine','Namibienne','Népalaise','Nicaraguayenne','Nigériane','Nigérienne',
+  'Norvégienne','Néo-Zélandaise','Ougandaise','Pakistanaise','Panaméenne','Paraguayenne',
+  'Péruvienne','Philippine','Polonaise','Portugaise','Qatarienne','Roumaine','Britannique',
+  'Russe','Rwandaise','Sénégalaise','Serbe','Sierra-Léonaise','Singapourienne','Slovaque',
+  'Somalienne','Soudanaise','Sri-Lankaise','Suédoise','Suisse','Syrienne','Tanzanienne',
+  'Tchadienne','Thaïlandaise','Togolaise','Tunisienne','Turkmène','Turque','Ukrainienne',
+  'Uruguayenne','Vénézuélienne','Vietnamienne','Yéménite','Zambienne','Zimbabwéenne'
+];
+
+function initAutocomplete(inputId, listeId, donnees) {
+  const input = document.getElementById(inputId);
+  const liste = document.getElementById(listeId);
+  if (!input || !liste) return;
+
+  input.addEventListener('input', () => {
+    const q = input.value.toLowerCase().trim();
+    liste.innerHTML = '';
+    if (!q) { liste.classList.remove('active'); return; }
+    const resultats = donnees.filter(p => p.toLowerCase().includes(q)).slice(0, 8);
+    if (!resultats.length) { liste.classList.remove('active'); return; }
+    resultats.forEach(p => {
+      const item = document.createElement('div');
+      item.className = 'pays-item';
+      item.textContent = p;
+      item.addEventListener('mousedown', e => {
+        e.preventDefault();
+        input.value = p;
+        liste.classList.remove('active');
+        input.dispatchEvent(new Event('change'));
+      });
+      liste.appendChild(item);
+    });
+    liste.classList.add('active');
   });
-  document.getElementById(`sec-${n}`).classList.add('active');
-  window.scrollTo({ top: 0, behavior: 'smooth' });
+
+  input.addEventListener('blur', () => setTimeout(() => liste.classList.remove('active'), 150));
+  input.addEventListener('focus', () => { if (input.value.trim()) input.dispatchEvent(new Event('input')); });
 }
 
-document.querySelectorAll('.btn-suivant').forEach(b => {
-  b.addEventListener('click', () => afficherSection(+b.dataset.cible));
-});
-document.querySelectorAll('.btn-precedent').forEach(b => {
-  b.addEventListener('click', () => afficherSection(+b.dataset.cible));
+initAutocomplete('inp-pays-entite', 'liste-pays-entite', PAYS);
+initAutocomplete('inp-nationalite', 'liste-nationalite', NATIONALITES);
+initAutocomplete('inp-pays-residence', 'liste-pays-residence', PAYS);
+
+
+// ─── GESTION CHAMPS GRISÉS (radio Oui/Non/NR) ────────────────────────────────
+function mettreAJourGrille(radio) {
+  const cibleId = radio.dataset.cibleGrille;
+  if (!cibleId) return;
+  const cible = document.getElementById(cibleId);
+  if (!cible) return;
+  const actif = radio.value === 'Oui';
+  cible.classList.toggle('champs-grilles', !actif);
+  cible.querySelectorAll('input, select, textarea').forEach(el => {
+    el.disabled = !actif;
+  });
+}
+
+document.querySelectorAll('.radio-grille').forEach(radio => {
+  radio.addEventListener('change', () => mettreAJourGrille(radio));
+  if (radio.checked) mettreAJourGrille(radio);
 });
 
-// Champs conditionnels
+// Init au chargement pour les radios déjà cochés
+document.querySelectorAll('.radio-grille').forEach(r => { if (r.checked) mettreAJourGrille(r); });
+
+
+// ─── CHAMPS CONDITIONNELS (bourse, ppe) ───────────────────────────────────────
 document.querySelectorAll('input[data-affiche]').forEach(radio => {
   radio.addEventListener('change', () => {
     const cible = document.getElementById(radio.dataset.affiche);
@@ -560,7 +689,8 @@ document.querySelectorAll('input[data-affiche]').forEach(radio => {
   });
 });
 
-// Style des radios
+
+// ─── STYLE DES RADIOS ─────────────────────────────────────────────────────────
 document.querySelectorAll('.option-radio input').forEach(radio => {
   radio.addEventListener('change', () => {
     document.querySelectorAll(`input[name="${radio.name}"]`).forEach(r => {
@@ -569,7 +699,111 @@ document.querySelectorAll('.option-radio input').forEach(radio => {
   });
 });
 
-// Zone de dépôt de fichiers
+
+// ─── VALIDATION SECTION PAR SECTION ──────────────────────────────────────────
+const FICHIERS_EXISTANTS = {{ (fichiers|length > 0)|tojson if fichiers else 'false' }};
+
+function validerSection(numSec) {
+  const erreurs = [];
+
+  // Champs texte/select requis
+  document.querySelectorAll(`.champ-requis[data-section="${numSec}"]`).forEach(el => {
+    if (!el.value.trim()) {
+      const label = el.closest('.col-md-2, .col-md-3, .col-md-4, .col-md-5, .col-md-6, .col-md-12, .col-12');
+      const nomLabel = label ? (label.querySelector('.form-label') || {}).textContent?.replace('*','').trim() : el.name;
+      erreurs.push(nomLabel || el.name);
+      el.classList.add('champ-invalide');
+    } else {
+      el.classList.remove('champ-invalide');
+    }
+  });
+
+  // Radios requis (vérifier qu'un choix est fait pour chaque groupe)
+  const groupesVerifies = new Set();
+  document.querySelectorAll(`.radio-requis[data-section="${numSec}"]`).forEach(radio => {
+    const groupe = radio.dataset.groupe;
+    if (groupesVerifies.has(groupe)) return;
+    groupesVerifies.add(groupe);
+    const cochee = document.querySelector(`input[name="${groupe}"]:checked`);
+    if (!cochee) {
+      const label = radio.closest('.col-md-3, .col-md-4, .col-md-6');
+      const nomLabel = label ? (label.querySelector('.form-label') || {}).textContent?.replace('*','').trim() : groupe;
+      erreurs.push(nomLabel || groupe);
+      radio.closest('.groupe-radio')?.classList.add('groupe-invalide');
+    } else {
+      radio.closest('.groupe-radio')?.classList.remove('groupe-invalide');
+    }
+  });
+
+  // Validation fichier (section 4 uniquement)
+  if (numSec === 4) {
+    const nbFichiersNouveaux = champFichiers ? champFichiers.files.length : 0;
+    if (!FICHIERS_EXISTANTS && nbFichiersNouveaux === 0) {
+      erreurs.push('Document justificatif');
+      document.getElementById('erreur-fichier')?.classList.remove('d-none');
+      document.getElementById('zoneDepot')?.classList.add('zone-depot-invalide');
+    } else {
+      document.getElementById('erreur-fichier')?.classList.add('d-none');
+      document.getElementById('zoneDepot')?.classList.remove('zone-depot-invalide');
+    }
+  }
+
+  return erreurs;
+}
+
+function afficherErreurs(erreurs) {
+  const alerte = document.getElementById('alerte-validation');
+  const texte = document.getElementById('alerte-validation-texte');
+  if (erreurs.length) {
+    texte.textContent = `Champs obligatoires manquants : ${erreurs.join(', ')}.`;
+    alerte.classList.remove('d-none');
+    alerte.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  } else {
+    alerte.classList.add('d-none');
+  }
+}
+
+
+// ─── NAVIGATION ENTRE SECTIONS ────────────────────────────────────────────────
+function afficherSection(n) {
+  document.querySelectorAll('.section-form').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.etape').forEach((e, i) => {
+    e.classList.toggle('active', i + 1 === n);
+    e.classList.toggle('finie', i + 1 < n);
+  });
+  document.getElementById(`sec-${n}`).classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  document.getElementById('alerte-validation')?.classList.add('d-none');
+}
+
+document.querySelectorAll('.btn-suivant').forEach(b => {
+  b.addEventListener('click', () => {
+    const secVal = parseInt(b.dataset.sectionVal);
+    const cible = parseInt(b.dataset.cible);
+    const erreurs = validerSection(secVal);
+    if (erreurs.length) {
+      afficherErreurs(erreurs);
+    } else {
+      afficherSection(cible);
+    }
+  });
+});
+
+document.querySelectorAll('.btn-precedent').forEach(b => {
+  b.addEventListener('click', () => afficherSection(+b.dataset.cible));
+});
+
+// Validation finale avant soumission
+document.getElementById('formDeclaration').addEventListener('submit', function(e) {
+  const errs5 = validerSection(5);
+  if (errs5.length) {
+    e.preventDefault();
+    afficherErreurs(errs5);
+  }
+});
+
+
+// ─── ZONE DE DÉPÔT ────────────────────────────────────────────────────────────
 const zone = document.getElementById('zoneDepot');
 const champFichiers = document.getElementById('champFichiers');
 const listeFichiers = document.getElementById('listeFichiers');
@@ -598,9 +832,14 @@ function afficherListeFichiers() {
       <span class="badge bg-secondary">${taille} Mo</span>
     </div>`;
   });
+  if (champFichiers.files.length > 0) {
+    document.getElementById('erreur-fichier')?.classList.add('d-none');
+    zone.classList.remove('zone-depot-invalide');
+  }
 }
 
-// Validation NINEA
+
+// ─── VALIDATION NINEA ─────────────────────────────────────────────────────────
 const inputNinea = document.getElementById('ninea');
 if (inputNinea) {
   let timer;
@@ -625,4 +864,55 @@ if (inputNinea) {
   });
 }
 </script>
+
+<style>
+.champ-invalide {
+  border-color: #B91C1C !important;
+  box-shadow: 0 0 0 3px rgba(185,28,28,0.12) !important;
+}
+.groupe-invalide .option-radio {
+  border-color: #B91C1C;
+}
+.alerte-validation {
+  background: #FEF2F2;
+  border: 1px solid #FECACA;
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  color: #991B1B;
+}
+.zone-depot-invalide {
+  border-color: #B91C1C !important;
+  background: #FEF2F2 !important;
+}
+.champs-grilles {
+  opacity: 0.4;
+  pointer-events: none;
+  filter: grayscale(1);
+}
+.pays-autocomplete { position: relative; }
+.pays-liste {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border: 1.5px solid var(--bleu-nuit);
+  border-top: none;
+  border-radius: 0 0 8px 8px;
+  max-height: 220px;
+  overflow-y: auto;
+  z-index: 999;
+  box-shadow: 0 4px 12px rgba(28,53,87,0.15);
+}
+.pays-liste.active { display: block; }
+.pays-item {
+  padding: 0.45rem 0.75rem;
+  font-size: 0.875rem;
+  cursor: pointer;
+  color: #1A202C;
+}
+.pays-item:hover { background: #EBF3FB; color: var(--bleu-nuit); }
+</style>
 {% endblock %}

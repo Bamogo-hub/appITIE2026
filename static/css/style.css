@@ -710,3 +710,61 @@ code {
   .etape-libelle { display: none; }
   .zone-alertes { width: calc(100% - 2rem); left: 1rem; right: 1rem; }
 }
+
+
+/* ── BANDEAU NATIONAL (page login) ───────────────────────── */
+/* Styles inline dans login.html, pas besoin ici */
+
+/* ── CHAMPS GRISÉS (participation/contrôle) ─────────────── */
+.champs-grilles {
+  opacity: 0.38;
+  pointer-events: none;
+  filter: grayscale(1);
+  transition: opacity 0.25s, filter 0.25s;
+}
+
+/* ── AUTOCOMPLETE PAYS ───────────────────────────────────── */
+.pays-autocomplete { position: relative; }
+.pays-liste {
+  display: none;
+  position: absolute;
+  top: 100%; left: 0; right: 0;
+  background: white;
+  border: 1.5px solid var(--bleu-nuit);
+  border-top: none;
+  border-radius: 0 0 8px 8px;
+  max-height: 220px;
+  overflow-y: auto;
+  z-index: 999;
+  box-shadow: 0 4px 12px rgba(28,53,87,0.15);
+}
+.pays-liste.active { display: block; }
+.pays-item {
+  padding: 0.45rem 0.75rem;
+  font-size: 0.875rem;
+  cursor: pointer;
+  color: #1A202C;
+}
+.pays-item:hover { background: #EBF3FB; color: var(--bleu-nuit); }
+
+/* ── VALIDATION FORMULAIRE ───────────────────────────────── */
+.champ-invalide {
+  border-color: #B91C1C !important;
+  box-shadow: 0 0 0 3px rgba(185,28,28,0.12) !important;
+}
+.groupe-invalide .option-radio { border-color: #B91C1C; }
+.alerte-validation {
+  background: #FEF2F2;
+  border: 1px solid #FECACA;
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
+  color: #991B1B;
+}
+.zone-depot-invalide {
+  border-color: #B91C1C !important;
+  background: #FEF2F2 !important;
+}
+.zone-depot-requise {
+  border-color: var(--bleu-nuit);
+}
