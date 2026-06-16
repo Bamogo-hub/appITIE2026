@@ -138,14 +138,26 @@ def generate_reference():
     return f"RNE-{now.year}-{now.strftime('%m%d')}-{str(uuid.uuid4())[:6].upper()}"
 
 
-def get_stats():
-    total = Declaration.query.count()
-    today = Declaration.query.filter(
-        db.func.date(Declaration.date_saisie) == datetime.today().date()
-    ).count()
-    entreprises = db.session.query(Declaration.ninea).distinct().count()
-    beneficiaires = db.session.query(Declaration.nom_beneficiaire).distinct().count()
-    ppe_count = Declaration.query.filter(Declaration.ppe == 'Oui').count()
+def get_stats(user_id=None):
+    """Statistiques globales (admin) ou filtrées par utilisateur."""
+    q = Declaration.query
+    if user_id:
+        q = q.filter_by(utilisateur_id=user_id)
+
+    total = q.count()
+
+    q_today = q.filter(db.func.date(Declaration.date_saisie) == datetime.today().date())
+    today = q_today.count()
+
+    if user_id:
+        entreprises  = db.session.query(Declaration.ninea).filter_by(utilisateur_id=user_id).distinct().count()
+        beneficiaires = db.session.query(Declaration.nom_beneficiaire).filter_by(utilisateur_id=user_id).distinct().count()
+        ppe_count    = Declaration.query.filter_by(utilisateur_id=user_id).filter(Declaration.ppe == 'Oui').count()
+    else:
+        entreprises  = db.session.query(Declaration.ninea).distinct().count()
+        beneficiaires = db.session.query(Declaration.nom_beneficiaire).distinct().count()
+        ppe_count    = Declaration.query.filter(Declaration.ppe == 'Oui').count()
+
     return {
         'total': total,
         'today': today,
@@ -186,27 +198,43 @@ def logout():
 @app.route('/dashboard')
 @login_required
 def dashboard():
-    stats = get_stats()
     user = User.query.get(session['user_id'])
-    if user.role == 'admin':
+    est_admin = (user.role == 'admin')
+
+    # Statistiques filtrées selon le rôle
+    uid_filtre = None if est_admin else user.id
+    stats = get_stats(user_id=uid_filtre)
+
+    # Déclarations récentes filtrées
+    if est_admin:
         declarations = Declaration.query.order_by(Declaration.date_saisie.desc()).limit(10).all()
     else:
         declarations = Declaration.query.filter_by(utilisateur_id=user.id).order_by(Declaration.date_saisie.desc()).limit(10).all()
 
     from sqlalchemy import extract, func
-    mois_data = db.session.query(
+
+    # Graphique par mois — filtré par utilisateur si nécessaire
+    q_mois = db.session.query(
         extract('month', Declaration.date_saisie).label('mois'),
         func.count(Declaration.id).label('count')
-    ).group_by('mois').all()
+    )
+    if not est_admin:
+        q_mois = q_mois.filter(Declaration.utilisateur_id == user.id)
+    mois_data = q_mois.group_by('mois').all()
+
     mois_labels = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc']
     mois_counts = [0] * 12
     for m, c in mois_data:
         if m:
             mois_counts[int(m) - 1] = c
 
-    formes_data = db.session.query(
+    # Graphique formes juridiques — filtré
+    q_formes = db.session.query(
         Declaration.forme_juridique, func.count(Declaration.id)
-    ).group_by(Declaration.forme_juridique).all()
+    )
+    if not est_admin:
+        q_formes = q_formes.filter(Declaration.utilisateur_id == user.id)
+    formes_data = q_formes.group_by(Declaration.forme_juridique).all()
 
     return render_template('dashboard.html',
         stats=stats,
@@ -214,7 +242,8 @@ def dashboard():
         mois_labels=json.dumps(mois_labels),
         mois_counts=json.dumps(mois_counts),
         formes_data=json.dumps([{'label': f or 'Non renseigné', 'value': c} for f, c in formes_data]),
-        user=user
+        user=user,
+        est_admin=est_admin
     )
 
 
@@ -957,7 +986,9 @@ def telecharger_modele_import():
 @app.route('/api/stats')
 @login_required
 def api_stats():
-    return jsonify(get_stats())
+    user = User.query.get(session['user_id'])
+    uid = None if user.role == 'admin' else user.id
+    return jsonify(get_stats(user_id=uid))
 
 
 @app.route('/api/validate/ninea', methods=['POST'])

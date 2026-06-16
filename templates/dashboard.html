@@ -11,7 +11,10 @@
   <div class="entete-page">
     <div>
       <h1 class="titre-page"><i class="fas fa-chart-pie me-2"></i>Tableau de bord</h1>
-      <p class="sous-titre-page">Registre National des Bénéficiaires Effectifs Sénégal</p>
+      <p class="sous-titre-page">
+        {% if est_admin %}Registre National des Bénéficiaires Effectifs — Vue complète
+        {% else %}Vos déclarations — {{ stats.total }} enregistrement(s){% endif %}
+      </p>
     </div>
     <a href="{{ url_for('nouvelle_declaration') }}" class="btn-primaire grand">
       <i class="fas fa-plus"></i> Nouvelle déclaration
@@ -58,7 +61,7 @@
       <div class="carte-stat stat-rouge">
         <div class="stat-icone"><i class="fas fa-hourglass-half"></i></div>
         <div class="stat-valeur">{{ stats.total }}</div>
-        <div class="stat-libelle">Enregistrements</div>
+        <div class="stat-libelle">{% if est_admin %}Total enregistrements{% else %}Mes enregistrements{% endif %}</div>
       </div>
     </div>
   </div>
