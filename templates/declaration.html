@@ -319,21 +319,26 @@
                   {% endfor %}
                 </div>
               </div>
-              <div class="col-md-6" id="bloc-relation-ppe" {% if not d or d.ppe != 'Oui' %}style="display:none"{% endif %}>
+              <div class="col-md-6">
                 <label class="form-label requis">Êtes-vous en relation avec une PPE ?</label>
                 <div class="groupe-radio">
                   {% for opt in ['Oui','Non','Non renseigné'] %}
                   <label class="option-radio {% if d and d.relation_ppe == opt %}selectionne{% endif %}">
-                    <input type="radio" name="relation_ppe" value="{{ opt }}"
-                           class="radio-conditionnel" data-section="2" data-groupe="relation_ppe"
-                           {% if d and d.relation_ppe == opt %}checked{% endif %}>{{ opt }}
+                    <input type="radio"
+       name="relation_ppe"
+       value="{{ opt }}"
+       class="radio-conditionnel"
+       data-section="2"
+       data-groupe="relation_ppe"
+       data-affiche="champs-ppe"
+       {% if d and d.relation_ppe == opt %}checked{% endif %}>{{ opt }}
                   </label>
                   {% endfor %}
                 </div>
               </div>
             </div>
 
-            <div id="champs-ppe" class="champs-cond {% if not d or d.ppe != 'Oui' %}d-none{% endif %} mt-3">
+            <div id="champs-ppe" class="champs-cond {% if not d or d.relation_ppe != 'Oui' %}d-none{% endif %} mt-3">
               <div class="banniere-cond danger"><i class="fas fa-exclamation-triangle me-2"></i>Informations PPE requises</div>
               <div class="contenu-cond">
                 <div class="row g-3">
