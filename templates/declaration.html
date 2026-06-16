@@ -313,7 +313,7 @@
                   {% for opt in ['Oui','Non','Non renseigné'] %}
                   <label class="option-radio {% if d and d.ppe == opt %}selectionne{% endif %} {% if opt == 'Oui' %}danger{% endif %}">
                     <input type="radio" name="ppe" value="{{ opt }}"
-                           class="radio-requis" data-section="2" data-groupe="ppe" data-affiche="champs-ppe"
+                           class="radio-requis" data-section="2" data-groupe="ppe" 
                            {% if d and d.ppe == opt %}checked{% endif %}>{{ opt }}
                   </label>
                   {% endfor %}
