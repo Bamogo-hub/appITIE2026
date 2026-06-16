@@ -14,7 +14,7 @@
           <i class="fas fa-{% if edit %}edit{% else %}plus-circle{% endif %} me-2"></i>
           {% if edit %}Modifier la déclaration{% else %}Nouvelle déclaration{% endif %}
         </h1>
-        <p class="sous-titre-page">Déclaration de Bénéficiaire Effectif &mdash; Ministère de la Justice</p>
+        <p class="sous-titre-page">Déclaration de Bénéficiaire Effectif Ministère de la Justice</p>
       </div>
     </div>
   </div>
@@ -38,7 +38,7 @@
 
   <form method="POST" enctype="multipart/form-data" id="formDeclaration" novalidate>
 
-    <!-- ══════ SECTION A — ENTITÉ DÉCLARANTE ══════ -->
+    <!-- ══════ SECTION A ENTITÉ DÉCLARANTE ══════ -->
     <div class="section-form active" id="sec-1">
       <div class="carte">
         <div class="carte-corps">
@@ -228,7 +228,7 @@
       </div>
     </div>
 
-    <!-- ══════ SECTION B — BÉNÉFICIAIRE ══════ -->
+    <!-- ══════ SECTION B BÉNÉFICIAIRE ══════ -->
     <div class="section-form" id="sec-2">
       <div class="carte">
         <div class="carte-corps">
@@ -313,19 +313,19 @@
                   {% for opt in ['Oui','Non','Non renseigné'] %}
                   <label class="option-radio {% if d and d.ppe == opt %}selectionne{% endif %} {% if opt == 'Oui' %}danger{% endif %}">
                     <input type="radio" name="ppe" value="{{ opt }}"
-                           class="radio-requis" data-section="2" data-groupe="ppe" data-affiche="champs-ppe"
+                           class="radio-requis" data-section="2" data-groupe="ppe"
                            {% if d and d.ppe == opt %}checked{% endif %}>{{ opt }}
                   </label>
                   {% endfor %}
                 </div>
               </div>
-              <div class="col-md-6" id="bloc-relation-ppe" {% if not d or d.ppe != 'Oui' %}style="display:none"{% endif %}>
+              <div class="col-md-6">
                 <label class="form-label requis">Êtes-vous en relation avec une PPE ?</label>
                 <div class="groupe-radio">
                   {% for opt in ['Oui','Non','Non renseigné'] %}
                   <label class="option-radio {% if d and d.relation_ppe == opt %}selectionne{% endif %}">
                     <input type="radio" name="relation_ppe" value="{{ opt }}"
-                           class="radio-conditionnel" data-section="2" data-groupe="relation_ppe"
+                           class="radio-requis" data-section="2" data-groupe="relation_ppe" data-affiche="champs-ppe"
                            {% if d and d.relation_ppe == opt %}checked{% endif %}>{{ opt }}
                   </label>
                   {% endfor %}
@@ -333,8 +333,8 @@
               </div>
             </div>
 
-            <div id="champs-ppe" class="champs-cond {% if not d or d.ppe != 'Oui' %}d-none{% endif %} mt-3">
-              <div class="banniere-cond danger"><i class="fas fa-exclamation-triangle me-2"></i>Informations PPE requises</div>
+            <div id="champs-ppe" class="champs-cond {% if not d or d.relation_ppe != 'Oui' %}d-none{% endif %} mt-3">
+              <div class="banniere-cond danger"><i class="fas fa-exclamation-triangle me-2"></i>Informations complémentaires PPE</div>
               <div class="contenu-cond">
                 <div class="row g-3">
                   <div class="col-md-4">
@@ -376,7 +376,7 @@
       </div>
     </div>
 
-    <!-- ══════ SECTION C — PARTICIPATION ══════ -->
+    <!-- ══════ SECTION C PARTICIPATION ══════ -->
     <div class="section-form" id="sec-3">
       <div class="carte">
         <div class="carte-corps">
@@ -532,7 +532,7 @@
       </div>
     </div>
 
-    <!-- ══════ SECTION D — DOCUMENTS ══════ -->
+    <!-- ══════ SECTION D DOCUMENTS ══════ -->
     <div class="section-form" id="sec-4">
       <div class="carte">
         <div class="carte-corps">
@@ -548,7 +548,7 @@
             <input type="file" name="documents" id="champFichiers" multiple accept=".pdf,.zip,.docx,.xlsx" class="d-none">
             <div class="icone"><i class="fas fa-cloud-upload-alt"></i></div>
             <h5 style="font-size:1rem; color:#1C3557">Déposez vos fichiers ici ou cliquez pour sélectionner</h5>
-            <p class="text-muted mt-1" style="font-size:0.85rem">Formats acceptés : PDF, ZIP, DOCX, XLSX — max 100 Mo</p>
+            <p class="text-muted mt-1" style="font-size:0.85rem">Formats acceptés : PDF, ZIP, DOCX, XLSX max 100 Mo</p>
             <button type="button" class="btn btn-outline-primary mt-2" onclick="document.getElementById('champFichiers').click()">
               <i class="fas fa-folder-open me-2"></i>Parcourir
             </button>
@@ -583,7 +583,7 @@
       </div>
     </div>
 
-    <!-- ══════ SECTION E — CERTIFICATION ══════ -->
+    <!-- ══════ SECTION E CERTIFICATION ══════ -->
     <div class="section-form" id="sec-5">
       <div class="carte">
         <div class="carte-corps">
@@ -855,24 +855,12 @@ if (inputEmail) {
 }
 
 // ══════════════════════════════════════════════════════════════════
-// GESTION PPE : affichage conditionnel
+// GESTION PPE : le bloc détails s'affiche quand relation_ppe = Oui
 // ══════════════════════════════════════════════════════════════════
-document.querySelectorAll('input[name="ppe"]').forEach(radio => {
-  radio.addEventListener('change', () => {
-    const estPPE = radio.value === 'Oui';
-    const blocRelation = document.getElementById('bloc-relation-ppe');
-    const champsPPE = document.getElementById('champs-ppe');
-    if (blocRelation) blocRelation.style.display = estPPE ? '' : 'none';
-    if (champsPPE) champsPPE.classList.toggle('d-none', !estPPE);
-    // Si non PPE, vider les champs conditionnels
-    if (!estPPE) {
-      document.querySelectorAll('.champ-conditionnel').forEach(el => {
-        if (el.tagName === 'SELECT') el.selectedIndex = 0;
-        else el.value = '';
-      });
-    }
-  });
-});
+// La question "relation avec une PPE" est posée à tout le monde.
+// Le bloc détails (Fonction, Catégorie, etc.) n'apparaît que si
+// la réponse à "Êtes-vous en relation avec une PPE ?" est Oui.
+// Rien ne dépend de la réponse à "Êtes-vous une PPE ?".
 
 // ══════════════════════════════════════════════════════════════════
 // GRISAGE DES CHAMPS SELON Oui/Non
@@ -986,10 +974,10 @@ function validerSection(numSec) {
     }
   });
 
-  // --- Champs PPE conditionnels (section 2) ---
+  // --- Champs PPE conditionnels (section 2, si relation_ppe = Oui) ---
   if (numSec === 2) {
-    const ppe = document.querySelector('input[name="ppe"]:checked');
-    if (ppe && ppe.value === 'Oui') {
+    const rel = document.querySelector('input[name="relation_ppe"]:checked');
+    if (rel && rel.value === 'Oui') {
       document.querySelectorAll('.champ-conditionnel[data-section="2"]').forEach(el => {
         const vide = !el.value.trim();
         el.classList.toggle('champ-invalide', vide);
