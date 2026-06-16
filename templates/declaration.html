@@ -304,77 +304,32 @@
             </div>
           </div>
 
-          <div class="bloc-interne mt-3">
-            <div class="titre-bloc"><i class="fas fa-user-tie me-2"></i>Personne Politiquement Exposée (PPE)</div>
-            <div class="row g-3">
-              <div class="col-md-6">
-                <label class="form-label requis">Êtes-vous une Personne Politiquement Exposée (PPE) ?</label>
-                <div class="groupe-radio">
-                  {% for opt in ['Oui','Non','Non renseigné'] %}
-                  <label class="option-radio {% if d and d.ppe == opt %}selectionne{% endif %} {% if opt == 'Oui' %}danger{% endif %}">
-                    <input type="radio" name="ppe" value="{{ opt }}"
-                           class="radio-requis" data-section="2" data-groupe="ppe" 
-                           {% if d and d.ppe == opt %}checked{% endif %}>{{ opt }}
-                  </label>
-                  {% endfor %}
-                </div>
-              </div>
-              <div class="col-md-6">
-                <label class="form-label requis">Êtes-vous en relation avec une PPE ?</label>
-                <div class="groupe-radio">
-                  {% for opt in ['Oui','Non','Non renseigné'] %}
-                  <label class="option-radio {% if d and d.relation_ppe == opt %}selectionne{% endif %}">
-                    <input type="radio"
-       name="relation_ppe"
-       value="{{ opt }}"
-       class="radio-conditionnel"
-       data-section="2"
-       data-groupe="relation_ppe"
-       data-affiche="champs-ppe"
-       {% if d and d.relation_ppe == opt %}checked{% endif %}>{{ opt }}
-                  </label>
-                  {% endfor %}
-                </div>
-              </div>
-            </div>
+document.addEventListener('DOMContentLoaded', function () {
 
-            <div id="champs-ppe" class="champs-cond {% if not d or d.relation_ppe != 'Oui' %}d-none{% endif %} mt-3">
-              <div class="banniere-cond danger"><i class="fas fa-exclamation-triangle me-2"></i>Informations PPE requises</div>
-              <div class="contenu-cond">
-                <div class="row g-3">
-                  <div class="col-md-4">
-                    <label class="form-label requis">Fonction PPE</label>
-                    <input type="text" name="fonction_ppe" class="form-control champ-conditionnel" data-section="2" data-label="Fonction PPE"
-                           value="{{ d.fonction_ppe if d else '' }}" placeholder="Ex. Ministre, Député...">
-                  </div>
-                  <div class="col-md-4">
-                    <label class="form-label requis">Catégorie PPE</label>
-                    <select name="categorie_ppe" class="form-select champ-conditionnel" data-section="2" data-label="Catégorie PPE">
-                      <option value="">Sélectionner</option>
-                      <option value="PPE nationale" {% if d and d.categorie_ppe == 'PPE nationale' %}selected{% endif %}>PPE nationale</option>
-                      <option value="PPE étrangère" {% if d and d.categorie_ppe == 'PPE étrangère' %}selected{% endif %}>PPE étrangère</option>
-                      <option value="PPE organisation internationale" {% if d and d.categorie_ppe == 'PPE organisation internationale' %}selected{% endif %}>PPE organisation internationale</option>
-                    </select>
-                  </div>
-                  <div class="col-md-2">
-                    <label class="form-label requis">Début de fonction</label>
-                    <input type="date" name="date_debut_fonction" class="form-control champ-conditionnel" data-section="2" data-label="Début de fonction"
-                           value="{{ d.date_debut_fonction if d else '' }}">
-                  </div>
-                  <div class="col-md-2">
-                    <label class="form-label">Fin de fonction</label>
-                    <input type="date" name="date_fin_fonction" class="form-control" value="{{ d.date_fin_fonction if d else '' }}">
-                  </div>
-                  <div class="col-12">
-                    <label class="form-label requis">Nature de la relation avec la PPE</label>
-                    <textarea name="nature_relation_ppe" class="form-control champ-conditionnel" data-section="2" data-label="Nature de la relation PPE" rows="2">{{ d.nature_relation_ppe if d else '' }}</textarea>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+    const radiosRelation = document.querySelectorAll(
+        'input[name="relation_ppe"]'
+    );
+
+    const blocPPE = document.getElementById('champs-ppe');
+
+    function gererAffichagePPE() {
+        const valeur = document.querySelector(
+            'input[name="relation_ppe"]:checked'
+        )?.value;
+
+        if (valeur === 'Oui') {
+            blocPPE.classList.remove('d-none');
+        } else {
+            blocPPE.classList.add('d-none');
+        }
+    }
+
+    radiosRelation.forEach(radio => {
+        radio.addEventListener('change', gererAffichagePPE);
+    });
+
+    gererAffichagePPE();
+});
       <div class="d-flex justify-content-between mt-3">
         <button type="button" class="btn btn-outline-secondary btn-precedent" data-cible="1"><i class="fas fa-arrow-left me-2"></i>Précédent</button>
         <button type="button" class="btn-primaire btn-suivant" data-cible="3" data-section-val="2">Suivant : Participation <i class="fas fa-arrow-right ms-2"></i></button>
